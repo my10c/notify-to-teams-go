@@ -1,0 +1,4 @@
+# no binary should be push to the repo
+notify-to-teams
+tmp/*
+work/*
