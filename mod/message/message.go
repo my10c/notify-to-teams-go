@@ -12,12 +12,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 	"io"
+	"net/http"
+	"os"
+	"regexp"
 	"strings"
 	"time"
-	"regexp"
-	"net/http"
+
+	//"context"
+	// msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	// graphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 
 	// local
 	"vars"
@@ -25,12 +29,13 @@ import (
 
 type (
 	TeamJson struct {
-		Text  string `json:"text"`
-		MrkDwn bool `json:"mrkdwn"`
+		Text   string `json:"text"`
+		MrkDwn bool   `json:"mrkdwn"`
 	}
 )
 
 const (
+	// teams emojie codes
 	RedCircle    = "&#x1f534;"
 	GreenCircle  = "&#x1f7e2;"
 	YellowCircle = "&#x1f7e1;"
@@ -40,23 +45,44 @@ const (
 )
 
 func SendMessage(msg string, config vars.TeamsConfig) bool {
- 	// create a new connection
-	jsonData := TeamJson{
-		Text: msg,
-		MrkDwn: true,
+
+	// Construct the message payload (e.g., an Adaptive Card JSON)
+	messagePayload := map[string]interface{}{
+		"type": "message",
+		"attachments": []map[string]interface{}{
+			{
+				"contentType": "application/vnd.microsoft.card.adaptive",
+				"contentUrl":  nil,
+				"content": map[string]interface{}{
+					"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+					"type":    "AdaptiveCard",
+					"version": "1.2",
+					"body": []map[string]interface{}{
+						{
+							"type":   "TextBlock",
+							"MrkDwn": true,
+							"text":   msg,
+							"wrap":   false,
+						},
+					},
+				},
+			},
+		},
 	}
-	jsonMsg, err := json.Marshal(jsonData)
+	jsonMsg, err := json.Marshal(messagePayload)
 	if err != nil {
 		os.Exit(3)
 	}
-	request, err := http.NewRequest("POST", config.WebHookUrl, bytes.NewBuffer(jsonMsg))
+	request, err := http.NewRequest("POST", config.WorkFlowUrl, bytes.NewBuffer(jsonMsg))
 	if err != nil {
+		fmt.Printf("Errored %v\n", err)
 		os.Exit(3)
 	}
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
+		fmt.Printf("Errored %v\n", err)
 		panic(err)
 	}
 	defer response.Body.Close()
@@ -68,13 +94,13 @@ func GetMessage(config vars.TeamsConfig) string {
 	result := make(chan string, 1)
 	go func() {
 		result <- getMessage(config)
-	} ()
+	}()
 	select {
-		// we should get data within 2 seconds
-		// otherwise we exit
-		case <-time.After(2 * time.Second):
-			os.Exit(3)
-		case msg = <-result:
+	// we should get data within 2 seconds
+	// otherwise we exit
+	case <-time.After(2 * time.Second):
+		os.Exit(3)
+	case msg = <-result:
 		break
 	}
 	return msg
@@ -82,7 +108,7 @@ func GetMessage(config vars.TeamsConfig) string {
 
 func getMessage(config vars.TeamsConfig) string {
 	//
-	// 🟩 📡 🔴 🟢 
+	// 🟩 📡 🔴 🟢 🌕
 	//
 	//	# HOSTSTATE				UP DOWN UNREACHABLE
 	//	# SERVICESTATE			OK WARNING UNKNOWN CRITICAL <-- no longer needed, SERVICEOUTPUT have the info needed
@@ -106,36 +132,40 @@ func getMessage(config vars.TeamsConfig) string {
 	data := strings.Split(string(stdin), "\n")
 	notification_type = strings.Split(data[0], " ")[0]
 	notification_host = strings.Split(data[0], " ")[1]
-	url := fmt.Sprintf("[%s](%s)", notification_host, config.MonitorUrl, notification_host)
+	notification_msg := "no message provided"
+	if len(data[3]) > 1 {
+		notification_msg = strings.ReplaceAll(data[3], "ServiceState: ", "")
+	}
+	url := fmt.Sprintf("Monitorl URL: [%s](%s)", notification_host, config.MonitorUrl+notification_host)
 	switch notification_type {
-		case "Host:":
-			// build the message for a host notification
-			notification_state = strings.ReplaceAll(data[2], "HostState: ", "")
-			if strings.Contains(data[1],"DOWN") {
-				message = fmt.Sprintf("%s %s\n\n * host <span style=color:%s>***alert***</span>\n * DOWN\n * %s\n",
-				 RedCircle, url, ColorRed, notification_state)
-			}
-			if strings.Contains(data[1], "UP") {
-				message = fmt.Sprintf("%s %s\n\n * host <span style=color:%s>***recovered***</span>\n * UP\n * %s\n",
-				 GreenCircle, url, ColorGreen, notification_state)
-			}
-		case "ServiceHost:":
-			// <span style=color:darkgreen>
-			notification_state = strings.ReplaceAll(data[1], "ServiceOutput: ", "")
-			service_name = strings.ReplaceAll(data[2], "ServiceName: ", "")
-			if strings.Contains(data[1],"OK") {
-				message = fmt.Sprintf("%s %s\n\n * Service <span style=color:%s>****recovered***</span>\n * %s\n * %s\n",
-				 GreenCircle, url, ColorGreen, service_name, notification_state)
-			} else {
-				// <span style=color:darkred>
-				message = fmt.Sprintf("%s %s\n\n * Service <span style=color:%s>***alert***</span>\n * %s\n * %s\n",
-				 RedCircle, url, ColorRed, service_name, notification_state)
-			}
-		default:
-			re := regexp.MustCompile("status.*")
-			url := fmt.Sprintf("[monitor home](%s)", re.ReplaceAllString(config.MonitorUrl, "main.cgi"))
-			message = fmt.Sprintf("%s %s\n\n * unknown <span style=color:%s>***error***</span> occured\n * please check the monitor dashboard\n",
-				YellowCircle, url, ColorYellow)
+	case "Host:":
+		// build the message for a host notification
+		notification_state = strings.ReplaceAll(data[2], "HostState: ", "")
+		if strings.Contains(data[1], "DOWN") {
+			message = fmt.Sprintf("🔴 %s\n\n * host ***alert***\n * DOWN\n * %s\n",
+				url, notification_state)
+		}
+		if strings.Contains(data[1], "UP") {
+			message = fmt.Sprintf("🟢 %s\n\n * host ***recovered***\n * UP\n * %s\n",
+				url, notification_state)
+		}
+	case "ServiceHost:":
+		// <span style=color:darkgreen>
+		notification_state = strings.ReplaceAll(data[1], "ServiceOutput: ", "")
+		service_name = strings.ReplaceAll(data[2], "ServiceName: ", "")
+		if strings.Contains(data[1], "OK") {
+			message = fmt.Sprintf("🟢 %s\n\n * Service ***recovered***\n * %s\n * %s\n * %s\n",
+				url, service_name, notification_state, notification_msg)
+		} else {
+			// <span style=color:darkred>
+			message = fmt.Sprintf("🔴 %s\n\n * Service ***alert***\n * %s\n * %s\n * %s\n",
+				url, service_name, notification_state, notification_msg)
+		}
+	default:
+		re := regexp.MustCompile("status.*")
+		url := fmt.Sprintf("[monitor home](%s)", re.ReplaceAllString(config.MonitorUrl, "main.cgi"))
+		message = fmt.Sprintf("🌕 %s\n\n * unknown ***error*** occured\n * please check the monitor dashboard\n",
+			url)
 	}
 	return message
 }
