@@ -2,3 +2,5 @@
 notify-to-teams
 tmp/*
 work/*
+release/*
+.DS_Store

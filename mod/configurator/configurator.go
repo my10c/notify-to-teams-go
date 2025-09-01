@@ -1,9 +1,7 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2023, © Badassops LLC / Luc Suryo
+// Copyright (c) 2023 - 2025, © Badassops LLC / Luc Suryo
 // All rights reserved.
-//
-// Version	:	0.1
 //
 
 package configurator
@@ -13,16 +11,18 @@ import (
 	"os"
 
 	// local
-    "vars"
+	"vars"
 
-	// on github	
-	"github.com/my10c/packages-go/print"
+	// on github
 	"github.com/BurntSushi/toml"
+	"github.com/my10c/packages-go/print"
 )
 
 type (
 	tomlConfig struct {
-		Teams vars.TeamsConfig `toml:"teams"`
+		Auth      vars.Auth        `toml:"auth"`
+		Teams     vars.TeamsConfig `toml:"teams"`
+		LogConfig vars.LogConfig   `toml:"logconfig"`
 	}
 )
 
@@ -30,24 +30,48 @@ var (
 	Print = print.New()
 )
 
-func GetConfig() vars.TeamsConfig {
+// func GetConfig() vars.SlackConfig {
+func GetConfig(configFile string) tomlConfig {
 	var configValues tomlConfig
-	var configured vars.TeamsConfig
 
-	if _, err := toml.DecodeFile(vars.TeamsConfigFile, &configValues); err != nil {
+	if _, err := toml.DecodeFile(configFile, &configValues); err != nil {
 		Print.PrintRed("Error reading the configuration file\n")
 		fmt.Fprintln(os.Stderr, err)
-        Print.PrintBlue("Aborting...\n")
+		Print.PrintBlue("Aborting...\n")
 		os.Exit(1)
 	}
-	if	len(configValues.Teams.WebHookUrl) == 0 ||
+	// make sure all required configuration was set
+	// slack
+	if len(configValues.Teams.WorkFlowUrl) == 0 ||
 		len(configValues.Teams.MonitorUrl) == 0 {
 		Print.PrintRed("Error reading the configuration file, some value are missing or is empty\n")
-		Print.PrintBlue("Make sure webhook_url and monitor_url are set\n")
-        Print.PrintBlue("Aborting...\n")
-        os.Exit(1)
+		Print.PrintBlue("Make sure WOrkflowurl and monitorurl  are set\n")
+		Print.PrintBlue("Aborting...\n")
+		os.Exit(1)
 	}
-	configured.WebHookUrl = configValues.Teams.WebHookUrl
-	configured.MonitorUrl = configValues.Teams.MonitorUrl
-	return configured	
+	// auth == configuration file access
+	if len(configValues.Auth.AllowUsers) == 0 ||
+		len(configValues.Auth.AllowMods) == 0 {
+		Print.PrintRed("Error reading the configuration file, some value are missing or is empty\n")
+		Print.PrintBlue("Make sure allowUsers and allowMods are set\n")
+		Print.PrintBlue("Aborting...\n")
+		os.Exit(1)
+	}
+	// log is log configuration and set to default if not set
+	if len(configValues.LogConfig.LogsDir) == 0 {
+		configValues.LogConfig.LogsDir = vars.DefaultLogsDir
+	}
+	if len(configValues.LogConfig.LogFile) == 0 {
+		configValues.LogConfig.LogFile = vars.DefaultLogFile
+	}
+	if configValues.LogConfig.LogMaxSize == 0 {
+		configValues.LogConfig.LogMaxSize = vars.DefaultLogMaxSize
+	}
+	if configValues.LogConfig.LogMaxBackups == 0 {
+		configValues.LogConfig.LogMaxBackups = vars.DefaultLogMaxBackups
+	}
+	if configValues.LogConfig.LogMaxAge == 0 {
+		configValues.LogConfig.LogMaxAge = vars.DefaultLogMaxAge
+	}
+	return configValues
 }
