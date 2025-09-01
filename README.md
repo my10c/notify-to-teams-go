@@ -16,15 +16,14 @@ use the `-S` to see how to setup the configuration file
 ## usage
 
 ```
-usage: notify-to-teams [-h|--help] [-c|--configFile "<value>"]
-                                    [-v|--version] [-i|--info] [-t|--test]
-                                    [-s|--setup] [-S|--teams-config]
-                                    [-m|--message "<value>" [-m|--message
-                                    "<value>" ...]] [-q|--quiet]
+usage: notify-to-teams [-h|--help] [-c|--configFile "<value>"] [-v|--version]
+                       [-i|--info] [-t|--test] [-s|--setup] [-S|--teams-config]
+                       [-m|--message "<value>" [-m|--message "<value>" ...]]
+                       [-q|--quiet]
 
-                                    Simple script send a message to a teams
-                                    channel via a piped message or by the given
-                                    the message on the command line.
+                       Simple script send a message to a teams channel via a
+                       piped message or by the given the message on the command
+                       line.
 
 Arguments:
 
@@ -32,7 +31,7 @@ Arguments:
   -c  --configFile    Configuration file to be use. Default:
                       /usr/local/etc/teams/teams.conf
   -v  --version       Show version
-  -i  --info          Show how to use notify-to-teams_Darwin_arm64
+  -i  --info          Show how to use notify-to-teams
   -t  --test          test mode, no message will be sent. Default: false
   -s  --setup         Show how to setup in nagios or naemon
   -S  --teams-config  Show how to setup the teams configuration file
