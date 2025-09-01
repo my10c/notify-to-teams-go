@@ -142,11 +142,11 @@ func getMessage(config vars.TeamsConfig) string {
 		// build the message for a host notification
 		notification_state = strings.ReplaceAll(data[2], "HostState: ", "")
 		if strings.Contains(data[1], "DOWN") {
-			message = fmt.Sprintf("🔴 %s\n\n * host ***alert***\n * DOWN\n * %s\n",
+			message = fmt.Sprintf("🚨 %s\n\n * host ***alert***\n * DOWN\n * %s\n",
 				url, notification_state)
 		}
 		if strings.Contains(data[1], "UP") {
-			message = fmt.Sprintf("🟢 %s\n\n * host ***recovered***\n * UP\n * %s\n",
+			message = fmt.Sprintf("✅ %s\n\n * host ***recovered***\n * UP\n * %s\n",
 				url, notification_state)
 		}
 	case "ServiceHost:":
@@ -154,11 +154,11 @@ func getMessage(config vars.TeamsConfig) string {
 		notification_state = strings.ReplaceAll(data[1], "ServiceOutput: ", "")
 		service_name = strings.ReplaceAll(data[2], "ServiceName: ", "")
 		if strings.Contains(data[1], "OK") {
-			message = fmt.Sprintf("🟢 %s\n\n * Service ***recovered***\n * %s\n * %s\n * %s\n",
+			message = fmt.Sprintf("✅ %s\n\n * Service ***recovered***\n * %s\n * %s\n * %s\n",
 				url, service_name, notification_state, notification_msg)
 		} else {
 			// <span style=color:darkred>
-			message = fmt.Sprintf("🔴 %s\n\n * Service ***alert***\n * %s\n * %s\n * %s\n",
+			message = fmt.Sprintf("🚨 %s\n\n * Service ***alert***\n * %s\n * %s\n * %s\n",
 				url, service_name, notification_state, notification_msg)
 		}
 	default:

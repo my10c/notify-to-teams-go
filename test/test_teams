@@ -15,4 +15,4 @@ echo "Test Service OK"
 /usr/bin/printf "%b" "ServiceHost: myhost.cloud\nServiceOutput: OK\nServiceName: NTP\nServiceState: please ignore, testing service ok\n" | $CMD
 
 echo "Test Direct message"
-$CMD -m "please ignore, testing direct message"
+$CMD -m "🌕 please ignore, testing direct message"
