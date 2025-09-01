@@ -47,3 +47,8 @@ Arguments:
 ```
 make
 ```
+
+## NOTES
+- required a teams workflow url
+- [Retirement of Office 365 connectors within Microsoft Teams](https://devblogs.microsoft.com/microsoft365dev/retirement-of-office-365-connectors-within-microsoft-teams/)
+- search for [create a teams workflow to post to a channel](https://www.google.com/search?q=create+a+teams+workflow+to+post+to+a+channel&sca_esv=d7ac497bd0642435&rlz=1C5CHFA_enUS1166US1166&ei=pNe1aMr4FsOwqtsPzeOYiAY&oq=create+a+teams+workflow+to+post+&gs_lp=Egxnd3Mtd2l6LXNlcnAiIGNyZWF0ZSBhIHRlYW1zIHdvcmtmbG93IHRvIHBvc3QgKgIIADIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAjIFECEYqwJIgzBQhwdYpSBwAHgBkAEAmAFroAHhB6oBAzMuN7gBA8gBAPgBAZgCCqACygfCAgQQABhHwgIGEAAYFhgewgILEAAYgAQYhgMYigXCAggQABiABBiiBMICCBAAGKIEGIkFwgIFECEYnwWYAwDiAwUSATEgQIgGAZAGCJIHAzIuOKAHjT6yBwMxLji4B8QHwgcFMC40LjbIBx4&sclient=gws-wiz-serp)
