@@ -16,7 +16,7 @@ use the `-S` to see how to setup the configuration file
 ## usage
 
 ```
-usage: notify-to-teams_Darwin_arm64 [-h|--help] [-c|--configFile "<value>"]
+usage: notify-to-teams [-h|--help] [-c|--configFile "<value>"]
                                     [-v|--version] [-i|--info] [-t|--test]
                                     [-s|--setup] [-S|--teams-config]
                                     [-m|--message "<value>" [-m|--message
