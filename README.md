@@ -23,8 +23,8 @@ usage: notify-to-teams [-h|--help] [-c|--configFile "<value>"]
                                     "<value>" ...]] [-q|--quiet]
 
                                     Simple script send a message to a teams
-                                    channel via a piped message, by the givev
-                                    message on the command line.
+                                    channel via a piped message or by the given
+                                    the message on the command line.
 
 Arguments:
 
